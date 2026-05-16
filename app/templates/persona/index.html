@@ -2,88 +2,30 @@
 {% block title %}Personas — GruPero{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-
-  <!-- Formulario de registro -->
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header bg-primary text-white">
-        <i class="bi bi-person-plus me-2"></i>Nueva Persona
-      </div>
-      <div class="card-body">
-        <form method="POST" action="{{ url_for('persona.registrar') }}">
-
-          <div class="mb-3">
-            <label for="nombre" class="form-label fw-semibold">Nombre</label>
-            <input type="text" class="form-control" id="nombre" name="nombre"
-                   placeholder="Ej: Juan" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="apellido" class="form-label fw-semibold">Apellido</label>
-            <input type="text" class="form-control" id="apellido" name="apellido"
-                   placeholder="Ej: Pérez" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Días disponibles</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for d in dias %}
-              <div class="form-check form-check-inline m-0">
-                <input class="form-check-input" type="checkbox"
-                       name="dias" value="{{ d }}" id="d_{{ loop.index }}">
-                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
-                       for="d_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
-                  {{ d }}
-                </label>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Horarios disponibles</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for h in horarios %}
-              <div class="form-check form-check-inline m-0">
-                <input class="form-check-input" type="checkbox"
-                       name="horarios" value="{{ h }}" id="h_{{ loop.index }}">
-                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
-                       for="h_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
-                  {{ h }}
-                </label>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-plus-circle me-2"></i>Registrar
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Listado -->
-  <div class="col-lg-8">
+<div class="row">
+  <div class="col-12">
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <span><i class="bi bi-list-ul me-2"></i>Personas Registradas</span>
-        <span class="badge bg-primary rounded-pill">{{ personas|length }}</span>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-primary rounded-pill">{{ personas|length }}</span>
+          <a href="{{ url_for('persona.nueva') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-person-plus me-1"></i>Nueva Persona
+          </a>
+        </div>
       </div>
       <div class="card-body p-0">
         {% if personas %}
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow: visible;">
           <table class="table table-hover mb-0">
             <thead class="table-light">
               <tr>
                 <th class="ps-3">#</th>
                 <th>Nombre</th>
                 <th>Apellido</th>
-                <th>Dias</th>
+                <th>Días</th>
                 <th>Horarios</th>
-                <th></th>
+                <th class="text-end pe-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -94,21 +36,45 @@
                 <td>{{ p.apellido }}</td>
                 <td>
                   {% for d in p.dias_lista() %}
-                  <span class="badge bg-primary bg-opacity-10 text-primary badge-horario">{{ d }}</span>
+                  <span class="badge bg-success bg-opacity-10 text-success">{{ d }}</span>
                   {% endfor %}
                 </td>
                 <td>
                   {% for h in p.horarios_lista() %}
-                  <span class="badge bg-primary bg-opacity-10 text-primary badge-horario">{{ h }}</span>
+                  <span class="badge bg-primary bg-opacity-10 text-primary">{{ h }}</span>
                   {% endfor %}
                 </td>
                 <td class="text-end pe-3">
-                  <form method="POST"
-                        action="{{ url_for('persona.eliminar', persona_id=p.id) }}"
-                        onsubmit="return confirm('¿Eliminar a {{ p.nombre }} {{ p.apellido }}?')">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                      <i class="bi bi-trash"></i>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-three-dots-vertical"></i>
                     </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('persona.visualizar', persona_id=p.id) }}">
+                          <i class="bi bi-eye me-2"></i>Visualizar
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ url_for('persona.modificar', persona_id=p.id) }}">
+                          <i class="bi bi-pencil me-2"></i>Modificar
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <button class="dropdown-item text-danger"
+                         onclick="confirmarEliminar({{ p.id }}, `{{ p.nombre }} {{ p.apellido }}`)">
+                          <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- Form oculto para eliminar -->
+                  <form id="form-eliminar-{{ p.id }}" method="POST"
+                        action="{{ url_for('persona.eliminar', persona_id=p.id) }}"
+                        style="display:none;">
                   </form>
                 </td>
               </tr>
@@ -120,11 +86,57 @@
         <div class="text-center text-muted py-5">
           <i class="bi bi-inbox display-4"></i>
           <p class="mt-2">No hay personas registradas todavía.</p>
+          <a href="{{ url_for('persona.nueva') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-person-plus me-1"></i>Registrar primera persona
+          </a>
         </div>
         {% endif %}
       </div>
     </div>
   </div>
-
 </div>
+
+<!-- Modal eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>Confirmar eliminación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro que querés eliminar a <strong id="nombreEliminar"></strong>? Esta acción no se puede deshacer.
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+          <i class="bi bi-trash me-1"></i>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let formIdEliminar = null;
+
+  function confirmarEliminar(id, nombre) {
+    formIdEliminar = id;
+    document.getElementById('nombreEliminar').textContent = nombre;
+    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+  }
+
+  document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
+    if (formIdEliminar) {
+      document.getElementById('form-eliminar-' + formIdEliminar).submit();
+    }
+  });
+</script>
 {% endblock %}

@@ -9,7 +9,15 @@ HORARIOS_DISPONIBLES = [
     'Mañana y Noche',
     'Todo el día'
 ]
-
+DIAS_DISPONIBLES = [
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado',
+    'Domingo'
+]
 
 class Persona(db.Model):
     __tablename__ = 'personas'
@@ -18,6 +26,10 @@ class Persona(db.Model):
     nombre   = db.Column(db.String(100), nullable=False)
     apellido = db.Column(db.String(100), nullable=False)
     horarios = db.Column(db.String(255), nullable=False)
+    dias = db.Column(db.String(255), nullable=False)
+
+    def dias_lista(self):
+        return self.dias.split(',')
 
     def horarios_lista(self):
         return self.horarios.split(',')
@@ -27,7 +39,8 @@ class Persona(db.Model):
             'id': self.id,
             'nombre': self.nombre,
             'apellido': self.apellido,
-            'horarios': self.horarios_lista()
+            'horarios': self.horarios_lista(),
+            'dias': self.dias_lista()
         }
 
     @staticmethod

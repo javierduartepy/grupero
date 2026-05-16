@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Modificar Persona — GruPero{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-pencil me-2"></i>Modificar Persona
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('persona.actualizar', persona_id=persona.id) }}"
+              id="form-modificar">
+
+          <div class="mb-3">
+            <label for="nombre" class="form-label fw-semibold">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre"
+                   value="{{ persona.nombre }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="apellido" class="form-label fw-semibold">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido"
+                   value="{{ persona.apellido }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Días disponibles</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for d in dias %}
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="checkbox"
+                       name="dias" value="{{ d }}" id="d_{{ loop.index }}"
+                       {% if d in persona.dias_lista() %}checked{% endif %}>
+                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
+                       for="d_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
+                  {{ d }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Horarios disponibles</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for h in horarios %}
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="checkbox"
+                       name="horarios" value="{{ h }}" id="h_{{ loop.index }}"
+                       {% if h in persona.horarios_lista() %}checked{% endif %}>
+                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
+                       for="h_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
+                  {{ h }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="button" class="btn btn-primary w-100"
+                    onclick="confirmarGuardar()">
+              <i class="bi bi-save me-2"></i>Guardar
+            </button>
+            <a href="{{ url_for('persona.index') }}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-2"></i>Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmar guardar -->
+<div class="modal fade" id="modalGuardar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-primary">
+          <i class="bi bi-exclamation-triangle me-2"></i>Confirmar cambios
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro que querés guardar los cambios de <strong>{{ persona.nombre }} {{ persona.apellido }}</strong>?
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('form-modificar').submit()">
+          <i class="bi bi-save me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function confirmarGuardar() {
+    new bootstrap.Modal(document.getElementById('modalGuardar')).show();
+  }
+</script>
+{% endblock %}

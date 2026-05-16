@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Persona — GruPero{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-person-plus me-2"></i>Nueva Persona
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('persona.registrar') }}">
+
+          <div class="mb-3">
+            <label for="nombre" class="form-label fw-semibold">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre"
+                   placeholder="Ej: Juan" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="apellido" class="form-label fw-semibold">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido"
+                   placeholder="Ej: Pérez" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Días disponibles</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for d in dias %}
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="checkbox"
+                       name="dias" value="{{ d }}" id="d_{{ loop.index }}">
+                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
+                       for="d_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
+                  {{ d }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Horarios disponibles</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for h in horarios %}
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="checkbox"
+                       name="horarios" value="{{ h }}" id="h_{{ loop.index }}">
+                <label class="form-check-label badge bg-light text-dark border px-2 py-1"
+                       for="h_{{ loop.index }}" style="cursor:pointer; font-size:.85rem;">
+                  {{ h }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-plus-circle me-2"></i>Registrar
+            </button>
+            <a href="{{ url_for('persona.index') }}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-2"></i>Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
