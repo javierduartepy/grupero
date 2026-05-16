@@ -6,13 +6,14 @@ def obtener_todas():
     return Persona.query.order_by(Persona.id).all()
 
 
-def registrar(nombre, apellido, horarios):
+def registrar(nombre, apellido, dias, horarios):
     if Persona.existe(nombre, apellido):
         raise ValueError('Esa persona ya está registrada.')
 
     nueva = Persona(
         nombre=nombre,
         apellido=apellido,
+        dias=','.join(dias),
         horarios=','.join(horarios)
     )
     db.session.add(nueva)

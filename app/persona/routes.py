@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.persona import services
-from app.models.persona import HORARIOS_DISPONIBLES
+from app.models.persona import HORARIOS_DISPONIBLES, DIAS_DISPONIBLES
 
 persona_bp = Blueprint('persona', __name__, template_folder='../templates/persona')
 
@@ -10,6 +10,7 @@ def index():
     personas = services.obtener_todas()
     return render_template('persona/index.html',
                            personas=personas,
+                           dias=DIAS_DISPONIBLES,
                            horarios=HORARIOS_DISPONIBLES)
 
 
@@ -18,13 +19,14 @@ def registrar():
     nombre   = request.form.get('nombre', '').strip()
     apellido = request.form.get('apellido', '').strip()
     horarios = request.form.getlist('horarios')
+    dias = request.form.getlist('dias')
 
-    if not nombre or not apellido or not horarios:
+    if not nombre or not apellido or not horarios or not dias:
         flash('Completá todos los campos y seleccioná al menos un horario.', 'danger')
         return redirect(url_for('persona.index'))
 
     try:
-        services.registrar(nombre, apellido, horarios)
+        services.registrar(nombre, apellido, dias, horarios)
         flash(f'{nombre} {apellido} registrado correctamente.', 'success')
     except ValueError as e:
         flash(str(e), 'danger')
