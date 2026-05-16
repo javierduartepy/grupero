@@ -1,8 +1,9 @@
+from app import db
 from app.models.persona import Persona
 
 
 def obtener_todas():
-    return Persona.cargar_todas()
+    return Persona.query.order_by(Persona.id).all()
 
 
 def registrar(nombre, apellido, horarios):
@@ -10,21 +11,16 @@ def registrar(nombre, apellido, horarios):
         raise ValueError('Esa persona ya está registrada.')
 
     nueva = Persona(
-        id=Persona.siguiente_id(),
         nombre=nombre,
         apellido=apellido,
-        horarios=horarios
+        horarios=','.join(horarios)
     )
-    personas = Persona.cargar_todas()
-    personas.append(nueva)
-    Persona.guardar_todas(personas)
+    db.session.add(nueva)
+    db.session.commit()
     return nueva
 
 
 def eliminar(persona_id):
-    personas = Persona.cargar_todas()
-    personas = [p for p in personas if p.id != persona_id]
-    # Re-numerar
-    for i, p in enumerate(personas):
-        p.id = i + 1
-    Persona.guardar_todas(personas)
+    persona = Persona.query.get_or_404(persona_id)
+    db.session.delete(persona)
+    db.session.commit()

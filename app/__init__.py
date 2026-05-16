@@ -1,14 +1,19 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from config import config
 import os
 
-def create_app(config_name='default'):
+db = SQLAlchemy()
+
+
+def create_app(config_name=None):
+    if config_name is None:
+        config_name = os.environ.get('FLASK_ENV', 'default')
+
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
-    # Crear carpeta de datos si no existe
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
-    os.makedirs(data_dir, exist_ok=True)
+    db.init_app(app)
 
     # Registrar Blueprints
     from app.main.routes import main_bp
@@ -18,5 +23,9 @@ def create_app(config_name='default'):
     app.register_blueprint(main_bp)
     app.register_blueprint(persona_bp, url_prefix='/persona')
     app.register_blueprint(grupo_bp, url_prefix='/grupo')
+
+    # Crear tablas si no existen
+    with app.app_context():
+        db.create_all()
 
     return app
