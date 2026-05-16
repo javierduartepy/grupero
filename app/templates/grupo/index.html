@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Grupos — GruPero{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Formulario -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        <i class="bi bi-people me-2"></i>Configurar Grupo
+      </div>
+      <div class="card-body">
+
+        {% if personas|length < 2 %}
+          <div class="text-center text-muted py-3">
+            <i class="bi bi-exclamation-circle display-5"></i>
+            <p class="mt-2">Necesitás al menos 2 personas registradas.</p>
+            <a href="{{ url_for('persona.index') }}" class="btn btn-primary btn-sm">
+              Ir a Personas
+            </a>
+          </div>
+
+        {% else %}
+        <form method="POST" action="{{ url_for('grupo.formar') }}" id="form-grupo">
+
+          <!-- Tamaño -->
+          <div class="mb-3">
+            <label for="tamano" class="form-label fw-semibold">Tamaño del grupo</label>
+            <select class="form-select" name="tamano" id="tamano">
+              {% for n in range(2, personas|length + 1) %}
+              <option value="{{ n }}" {% if tamano == n %}selected{% endif %}>
+                {{ n }} personas
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Método -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Método</label>
+            <div class="d-grid gap-2">
+
+              <input type="radio" class="btn-check" name="metodo" id="m_azar"
+                     value="azar" {% if not metodo or metodo == 'azar' %}checked{% endif %}>
+              <label class="btn btn-outline-secondary text-start" for="m_azar">
+                <i class="bi bi-shuffle me-2"></i>Al Azar
+              </label>
+
+              <input type="radio" class="btn-check" name="metodo" id="m_compat"
+                     value="compatibilidad" {% if metodo == 'compatibilidad' %}checked{% endif %}>
+              <label class="btn btn-outline-secondary text-start" for="m_compat">
+                <i class="bi bi-clock me-2"></i>Por Compatibilidad de Horario
+              </label>
+
+              <input type="radio" class="btn-check" name="metodo" id="m_manual"
+                     value="manual" {% if metodo == 'manual' %}checked{% endif %}>
+              <label class="btn btn-outline-secondary text-start" for="m_manual">
+                <i class="bi bi-hand-index me-2"></i>Manual
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Panel manual -->
+          <div id="panel-manual" class="mb-3" style="display:{% if metodo == 'manual' %}block{% else %}none{% endif %}">
+            <label class="form-label fw-semibold">Seleccioná las personas</label>
+            <div class="d-flex flex-column gap-1">
+              {% for p in personas %}
+              <div class="form-check border rounded px-3 py-2">
+                <input class="form-check-input manual-check" type="checkbox"
+                       name="manual_ids" value="{{ p.id }}"
+                       id="pid_{{ p.id }}"
+                       {% if grupo and p.id in grupo|map(attribute='id')|list %}checked{% endif %}>
+                <label class="form-check-label w-100" for="pid_{{ p.id }}">
+                  <span class="fw-semibold">{{ p.nombre }} {{ p.apellido }}</span>
+                  <br>
+                  <small class="text-muted">{{ p.horarios|join(', ') }}</small>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 mt-2">
+            <i class="bi bi-arrow-right-circle me-2"></i>Formar Grupo
+          </button>
+        </form>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado -->
+  <div class="col-lg-8">
+    {% if grupo %}
+    <div class="card">
+      <div class="card-header bg-white d-flex align-items-center gap-2">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <span class="fw-semibold">Grupo Formado</span>
+        {% if metodo == 'azar' %}
+          <span class="badge bg-secondary ms-auto"><i class="bi bi-shuffle me-1"></i>Al Azar</span>
+        {% elif metodo == 'compatibilidad' %}
+          <span class="badge bg-primary ms-auto"><i class="bi bi-clock me-1"></i>Por Compatibilidad</span>
+        {% elif metodo == 'manual' %}
+          <span class="badge bg-warning text-dark ms-auto"><i class="bi bi-hand-index me-1"></i>Manual</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+
+        <div class="row g-3 mb-4">
+          {% for p in grupo %}
+          <div class="col-sm-6 col-md-4">
+            <div class="card text-center border-primary h-100">
+              <div class="card-body py-3">
+                <div class="display-6 mb-1">🧑</div>
+                <h6 class="fw-bold mb-0">{{ p.nombre }} {{ p.apellido }}</h6>
+                <div class="mt-2">
+                  {% for h in p.horarios %}
+                  <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:.75rem;">{{ h }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Horarios en común -->
+        <div class="border-top pt-3">
+          <span class="fw-semibold me-2">Horarios en común:</span>
+          {% if horarios_comun %}
+            {% for h in horarios_comun %}
+            <span class="badge bg-success me-1"><i class="bi bi-check me-1"></i>{{ h }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="text-danger"><i class="bi bi-x-circle me-1"></i>Sin horarios en común</span>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    {% else %}
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted py-5">
+        <i class="bi bi-people display-1"></i>
+        <p class="mt-3 fs-5">Configurá y formá un grupo para ver el resultado acá.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Mostrar/ocultar panel manual
+  document.querySelectorAll('input[name="metodo"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('panel-manual').style.display =
+        r.value === 'manual' && r.checked ? 'block' : 'none';
+    });
+  });
+
+  // Limitar checkboxes según tamaño
+  const tamanoSel = document.getElementById('tamano');
+  function limitarChecks() {
+    const max = tamanoSel ? parseInt(tamanoSel.value) : 3;
+    const checks = document.querySelectorAll('.manual-check');
+    checks.forEach(cb => {
+      cb.addEventListener('change', () => {
+        const sel = document.querySelectorAll('.manual-check:checked').length;
+        checks.forEach(c => {
+          if (!c.checked) c.disabled = sel >= max;
+        });
+      });
+    });
+  }
+  if (tamanoSel) { tamanoSel.addEventListener('change', limitarChecks); limitarChecks(); }
+</script>
+{% endblock %}
