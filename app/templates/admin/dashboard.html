@@ -1,0 +1,63 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Dashboard — Admin{% endblock %}
+
+{% block content %}
+<canvas id="nodesCanvas"></canvas>
+
+<div class="nodes-content">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;color:#888;margin:0 0 8px;">PANEL DE CONTROL</p>
+    <h1 style="font-family:'Share Tech Mono',monospace;font-size:28px;font-weight:400;margin:0 0 40px;letter-spacing:2px;">Administración</h1>
+
+    <div style="display:flex;gap:32px;">
+      <div style="background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:20px 36px;">
+        <p style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:#888;margin:0 0 6px;">PERSONAS</p>
+        <p style="font-family:'Share Tech Mono',monospace;font-size:40px;font-weight:400;margin:0;">{{ total_personas }}</p>
+      </div>
+      <div style="background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:20px 36px;">
+        <p style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:#888;margin:0 0 6px;">GRUPOS</p>
+        <p style="font-family:'Share Tech Mono',monospace;font-size:40px;font-weight:400;margin:0;">{{ total_grupos }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  #nodesCanvas { position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none; }
+  .nodes-content { position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 120px); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const canvas = document.getElementById('nodesCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, nodes = [], mouse = { x: -9999, y: -9999 };
+const N = 90, DIST = 190, MDIST = 150;
+const COL = [30, 80, 180];
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function mk() { return { ox: Math.random()*W, oy: Math.random()*H, x: 0, y: 0 }; }
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  const [r,g,b] = COL;
+  for(let n of nodes){ const dx=mouse.x-n.ox,dy=mouse.y-n.oy,d=Math.hypot(dx,dy); if(d<MDIST&&d>0){const p=(MDIST-d)/MDIST*0.3;n.x=n.ox+dx*p;n.y=n.oy+dy*p;}else{n.x+=(n.ox-n.x)*0.08;n.y+=(n.oy-n.y)*0.08;} }
+  for(let i=0;i<nodes.length;i++){ for(let j=i+1;j<nodes.length;j++){ const d=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y); if(d<DIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-d/DIST)*.3})`;ctx.lineWidth=.7;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();} } const dm=Math.hypot(nodes[i].x-mouse.x,nodes[i].y-mouse.y); if(dm<MDIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-dm/MDIST)*.7})`;ctx.lineWidth=1;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();} }
+  for(let n of nodes){ctx.beginPath();ctx.arc(n.x,n.y,2.5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.75)`;ctx.fill();}
+  if(mouse.x>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.9)`;ctx.fill();}
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', () => { resize(); nodes = Array.from({length:N}, mk); });
+document.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+document.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+resize();
+nodes = Array.from({length:N}, mk);
+draw();
+</script>
+{% endblock %}

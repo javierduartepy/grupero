@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #1a2e50; }
+    h1 { color: #1a2e50; font-size: 18px; margin-bottom: 4px; }
+    p.sub { color: #888; font-size: 11px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    thead th { background: #1a2e50; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; }
+    tbody tr:nth-child(even) { background: #f0f4ff; }
+    tbody td { padding: 8px 10px; border-bottom: 0.5px solid #dde; font-size: 11px; }
+    .badge { background: #1a2e50; color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 10px; margin-right: 3px; }
+    .sin { color: #aaa; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>GruPero — Grupos Formados</h1>
+  <p class="sub">Arquitectura y Sistema Operativo · TUP · UTN FRRe</p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Integrantes</th>
+        <th>Tema</th>
+        <th>Fecha de exposición</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in grupos %}
+      <tr>
+        <td>{{ g.id }}</td>
+        <td>
+          {% for p in g.personas %}
+          <span class="badge">{{ p.nombre }} {{ p.apellido }}</span>
+          {% endfor %}
+        </td>
+        <td>{% if g.tema %}{{ g.tema }}{% else %}<span class="sin">Sin asignar</span>{% endif %}</td>
+        <td>{{ g.fecha_exposicion | fecha_formato }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

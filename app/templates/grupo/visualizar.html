@@ -34,6 +34,49 @@
           </div>
         </div>
 
+        {% if grupo.fecha_exposicion or grupo.tema or grupo.observacion or grupo.archivo %}
+        <hr>
+        {% if grupo.fecha_exposicion %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Fecha de exposición</label>
+          <div class="border rounded px-3 py-2">
+            <span>{{ grupo.fecha_exposicion | fecha_formato }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if grupo.tema %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Tema asignado</label>
+          <div class="border rounded px-3 py-2">
+            <span class="fw-semibold">{{ grupo.tema }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if grupo.observacion %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Observación</label>
+          <div class="border rounded px-3 py-2">
+            <span>{{ grupo.observacion }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if grupo.archivo %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Archivo adjunto</label>
+          <div class="border rounded px-3 py-2">
+            <a href="{{ url_for('static', filename='uploads/' + grupo.archivo) }}"
+               class="btn btn-outline-primary btn-sm" target="_blank">
+              <i class="bi bi-file-earmark-arrow-down me-1"></i>{{ grupo.archivo }}
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        {% endif %}
+
         <div class="d-flex gap-2 mt-4">
           <a href="{{ url_for('grupo.index') }}" class="btn btn-primary w-100">
             <i class="bi bi-check-circle me-2"></i>Aceptar

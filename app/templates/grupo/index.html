@@ -23,6 +23,8 @@
                 <th class="ps-3">#</th>
                 <th>Integrantes</th>
                 <th>Cantidad</th>
+                <th>Tema</th>
+                <th>Fecha Presentación</th>
                 <th class="text-end pe-3">Acciones</th>
               </tr>
             </thead>
@@ -36,6 +38,14 @@
                   {% endfor %}
                 </td>
                 <td>{{ g.cantidad() }}</td>
+                <td>
+                  {% if g.tema %}
+                  <span class="badge bg-success bg-opacity-10 text-success">{{ g.tema }}</span>
+                    {% else %}
+                  <span class="text-muted" style="font-size:12px;">Sin asignar</span>
+                  {% endif %}
+                </td>
+                <td>{{ g.fecha_exposicion | fecha_formato }}</td>
                 <td class="text-end pe-3">
                   <div class="dropdown">
                     <button class="btn btn-outline-secondary btn-sm" type="button"

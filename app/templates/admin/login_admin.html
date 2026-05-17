@@ -1,0 +1,100 @@
+{% extends 'login_base.html' %}
+{% block title %}Admin — Ingresar{% endblock %}
+
+{% block content %}
+
+<canvas id="nodesCanvas"></canvas>
+
+<div style="position:relative;z-index:10;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div style="width:100%;max-width:340px;padding:2rem;">
+
+    <div style="text-align:center;margin-bottom:32px;">
+      <i class="bi bi-shield-lock" style="font-size:48px;color:#2e6ab5;"></i>
+      <h1 style="font-family:'Share Tech Mono',monospace;font-size:22px;margin-top:12px;letter-spacing:2px;">Admin</h1>
+      <p style="font-size:12px;letter-spacing:3px;color:#888;font-family:'Share Tech Mono',monospace;">GruPero</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('admin.login') }}">
+      <div style="margin-bottom:16px;">
+        <input type="text" name="usuario" placeholder="Usuario"
+          class="form-control"
+          style="font-family:'Share Tech Mono',monospace;font-size:15px;text-align:center;background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:14px;"
+          required>
+      </div>
+      <div style="margin-bottom:24px;">
+        <input type="password" name="password" placeholder="Contraseña"
+          class="form-control"
+          style="font-family:'Share Tech Mono',monospace;font-size:15px;text-align:center;background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:14px;"
+          required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100"
+        style="font-family:'Share Tech Mono',monospace;font-size:15px;padding:14px;border-radius:12px;">
+        Ingresar
+      </button>
+    </form>
+  </div>
+</div>
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  #nodesCanvas { position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none; }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const canvas = document.getElementById('nodesCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, nodes = [], mouse = { x: -9999, y: -9999 };
+const N = 190, DIST = 190, MDIST = 150;
+const COL = [30, 80, 180];
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function mk() { return { ox: Math.random()*W, oy: Math.random()*H, x: 0, y: 0 }; }
+
+function drawCylinder(x,y,w,h,a){ const [r,g,b]=COL; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const ry=h*0.15; ctx.beginPath(); ctx.ellipse(x,y-h/2+ry,w/2,ry,0,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+ry); ctx.lineTo(x-w/2,y+h/2-ry); ctx.ellipse(x,y+h/2-ry,w/2,ry,0,0,Math.PI); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+w/2,y-h/2+ry); ctx.lineTo(x+w/2,y+h/2-ry); ctx.stroke(); ctx.restore(); }
+function drawMemBlock(x,y,w,h,a){ const [r,g,b]=COL; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const rows=6,rh=h/rows; ctx.strokeRect(x-w/2,y-h/2,w,h); for(let i=1;i<rows;i++){ ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+i*rh); ctx.lineTo(x+w/2,y-h/2+i*rh); ctx.stroke(); } [0,2,4].forEach(i=>{ ctx.fillStyle=`rgba(${r},${g},${b},0.06)`; ctx.fillRect(x-w/2+1,y-h/2+i*rh+1,w-2,rh-2); }); ctx.restore(); }
+function drawCPU(x,y,s,a){ const [r,g,b]=COL; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; ctx.strokeRect(x-s/2,y-s/2,s,s); ctx.strokeRect(x-s*0.28,y-s*0.28,s*0.56,s*0.56); ctx.beginPath(); ctx.moveTo(x-s*0.28,y); ctx.lineTo(x+s*0.28,y); ctx.moveTo(x,y-s*0.28); ctx.lineTo(x,y+s*0.28); ctx.stroke(); for(let i=0;i<3;i++){ const off=(i-1)*s*0.22; ctx.beginPath(); ctx.moveTo(x+off,y-s/2); ctx.lineTo(x+off,y-s/2-12); ctx.moveTo(x+off,y+s/2); ctx.lineTo(x+off,y+s/2+12); ctx.moveTo(x-s/2,y+off); ctx.lineTo(x-s/2-12,y+off); ctx.moveTo(x+s/2,y+off); ctx.lineTo(x+s/2+12,y+off); ctx.stroke(); } ctx.restore(); }
+function drawPageTable(x,y,w,h,a){ const [r,g,b]=COL; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const rows=5,rh=h/rows; ctx.strokeRect(x-w/2,y-h/2,w,h); ctx.beginPath(); ctx.moveTo(x-w/2+w*0.45,y-h/2); ctx.lineTo(x-w/2+w*0.45,y+h/2); ctx.stroke(); for(let i=1;i<rows;i++){ ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+i*rh); ctx.lineTo(x+w/2,y-h/2+i*rh); ctx.stroke(); } ctx.fillStyle=`rgba(${r},${g},${b},0.1)`; ctx.fillRect(x-w/2+1,y-h/2+2*rh+1,w-2,rh-2); ctx.fillStyle=`rgba(${r},${g},${b},0.45)`; ctx.font='10px monospace'; ctx.fillText('P',x-w/2+8,y-h/2+14); ctx.fillText('D',x-w/2+w*0.55,y-h/2+14); ctx.restore(); }
+function drawArrow(x1,y1,x2,y2,a){ const [r,g,b]=COL; ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.35)`; ctx.lineWidth=0.8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); const ang=Math.atan2(y2-y1,x2-x1),as=8; [0,Math.PI].forEach(base=>{ const aa=base===0?ang:ang+Math.PI,px=base===0?x2:x1,py=base===0?y2:y1; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-as*Math.cos(aa-0.4),py-as*Math.sin(aa-0.4)); ctx.moveTo(px,py); ctx.lineTo(px-as*Math.cos(aa+0.4),py-as*Math.sin(aa+0.4)); ctx.stroke(); }); ctx.restore(); }
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  const [r,g,b] = COL;
+  for(let n of nodes){ const dx=mouse.x-n.ox,dy=mouse.y-n.oy,d=Math.hypot(dx,dy); if(d<MDIST&&d>0){const p=(MDIST-d)/MDIST*0.3;n.x=n.ox+dx*p;n.y=n.oy+dy*p;}else{n.x+=(n.ox-n.x)*0.08;n.y+=(n.oy-n.y)*0.08;} }
+  for(let i=0;i<nodes.length;i++){ for(let j=i+1;j<nodes.length;j++){ const d=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y); if(d<DIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-d/DIST)*.3})`;ctx.lineWidth=.7;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();} } const dm=Math.hypot(nodes[i].x-mouse.x,nodes[i].y-mouse.y); if(dm<MDIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-dm/MDIST)*.7})`;ctx.lineWidth=1;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();} }
+  for(let n of nodes){ctx.beginPath();ctx.arc(n.x,n.y,2.5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.75)`;ctx.fill();}
+  if(mouse.x>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.9)`;ctx.fill();}
+  drawCPU(W*0.10,H*0.28,60,0.55);
+  drawMemBlock(W*0.36,H*0.22,55,80,0.5);
+  drawCylinder(W*0.75,H*0.25,50,70,0.5);
+  drawPageTable(W*0.65,H*0.75,70,80,0.5);
+  drawMemBlock(W*0.88,H*0.65,45,70,0.45);
+  drawMemBlock(W*0.12,H*0.72,50,75,0.45);
+  drawArrow(W*0.10+32,H*0.28,W*0.36-28,H*0.22,0.35);
+  drawArrow(W*0.36+28,H*0.22,W*0.75-28,H*0.25,0.35);
+  drawArrow(W*0.65+10,H*0.75,W*0.88-23,H*0.65,0.3);
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', () => { resize(); nodes = Array.from({length:N}, mk); });
+document.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+document.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+resize();
+nodes = Array.from({length:N}, mk);
+draw();
+</script>
+{% endblock %}

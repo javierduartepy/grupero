@@ -1,0 +1,276 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Grupos — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .card { overflow: visible !important; }
+  .card-body { overflow: visible !important; }
+</style>
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+        <a href="{{ url_for('admin.grupos_pdf') }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+        </a>
+        <span><i class="bi bi-people me-2"></i>Grupos Formados</span>
+        </div>
+        <span class="badge bg-primary rounded-pill">{{ grupos|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if grupos %}
+        <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">#</th>
+                <th>Integrantes</th>
+                <th>Tema</th>
+                <th>Fecha</th>
+                <th class="text-end pe-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for g in grupos %}
+              <tr>
+                <td class="ps-3 text-muted">{{ g.id }}</td>
+                <td>
+                  {% for p in g.personas %}
+                  <span class="badge bg-primary">{{ p.nombre }} {{ p.apellido }}</span>
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if g.tema %}
+                  <span class="badge bg-success bg-opacity-10 text-success">{{ g.tema }}</span>
+                  {% else %}
+                  <span class="text-muted" style="font-size:12px;">Sin asignar</span>
+                  {% endif %}
+                </td>
+                <td>{{ g.fecha_exposicion | fecha_formato }}</td>
+                <td class="text-end pe-3">
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button class="dropdown-item"
+                          onclick="abrirVisualizar('{{ g.tema or '' }}', '{{ g.observacion or '' }}', '{{ g.archivo or '' }}', '{{ g.fecha_exposicion or '' }}')">
+                          <i class="bi bi-eye me-2"></i>Visualizar tema
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item"
+                          onclick="abrirAsignar({{ g.id }}, '{{ g.tema or '' }}', '{{ g.observacion or '' }}', '{{ g.archivo or '' }}', '{{ g.fecha_exposicion or '' }}')">
+                          <i class="bi bi-tag me-2"></i>Asignar tema
+                        </button>
+                      </li>
+                      <li>
+                        <button class="dropdown-item"
+                          onclick="abrirAsignar({{ g.id }}, '{{ g.tema or '' }}', '{{ g.observacion or '' }}', '{{ g.archivo or '' }}', '{{ g.fecha_exposicion or '' }}')">
+                          <i class="bi bi-pencil me-2"></i>Modificar tema
+                        </button>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <button class="dropdown-item text-danger" onclick="confirmarEliminarTema({{ g.id }})">
+                          <i class="bi bi-x-circle me-2"></i>Eliminar tema
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                  <form id="form-eliminar-{{ g.id }}" method="POST"
+                        action="{{ url_for('admin.eliminar_grupo', grupo_id=g.id) }}"
+                        style="display:none;"></form>
+                  <form id="form-eliminar-tema-{{ g.id }}" method="POST"
+                        action="{{ url_for('admin.eliminar_tema', grupo_id=g.id) }}"
+                        style="display:none;"></form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-people display-4"></i>
+          <p class="mt-2">No hay grupos formados.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal eliminar grupo -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>Confirmar eliminación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">¿Estás seguro que querés eliminar este grupo?</div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal visualizar tema -->
+<div class="modal fade" id="modalVisualizar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">
+          <i class="bi bi-eye me-2 text-primary"></i>Tema del grupo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Título</label>
+          <div class="border rounded px-3 py-2" id="verTema">—</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Fecha de exposición</label>
+          <div class="border rounded px-3 py-2" id="verFecha">—</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Observación</label>
+          <div class="border rounded px-3 py-2" id="verObservacion">—</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted">Archivo adjunto</label>
+          <div class="border rounded px-3 py-2" id="verArchivo">—</div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal asignar/modificar tema -->
+<div class="modal fade" id="modalAsignar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">
+          <i class="bi bi-tag me-2 text-primary"></i>Tema del grupo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formAsignar" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Título del tema</label>
+            <input type="text" name="tema" id="inputTema" class="form-control" placeholder="Ej: Sistemas de paginación" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Fecha de exposición</label>
+            <input type="date" name="fecha_exposicion" id="inputFecha" class="form-control">
+          </div>
+          <div class="mb-3" id="archivoActualDiv" style="display:none;">
+            <label class="form-label fw-semibold text-muted">Archivo actual</label>
+            <div class="border rounded px-3 py-2">
+              <a id="archivoActualLink" href="#" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-earmark me-1"></i><span id="archivoActualNombre"></span>
+              </a>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Reemplazar archivo</label>
+            <input type="file" name="archivo" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Observación</label>
+            <textarea name="observacion" id="inputObservacion" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let grupoIdEliminar = null;
+
+function confirmarEliminar(id) {
+  grupoIdEliminar = id;
+  new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+}
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
+  if (grupoIdEliminar) {
+    document.getElementById('form-eliminar-' + grupoIdEliminar).submit();
+  }
+});
+
+function abrirVisualizar(tema, observacion, archivo, fecha) {
+  document.getElementById('verTema').textContent = tema || '—';
+  document.getElementById('verObservacion').textContent = observacion || '—';
+  if (fecha) {
+    const parts = fecha.split('-');
+      document.getElementById('verFecha').textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
+    } else {
+      document.getElementById('verFecha').textContent = '—';
+    }
+  const verArchivo = document.getElementById('verArchivo');
+  if (archivo) {
+    verArchivo.innerHTML = `<a href="/static/uploads/${archivo}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-arrow-down me-1"></i>${archivo}</a>`;
+  } else {
+    verArchivo.textContent = '—';
+  }
+  new bootstrap.Modal(document.getElementById('modalVisualizar')).show();
+}
+
+function abrirAsignar(grupoId, tema, observacion, archivo, fecha) {
+  document.getElementById('formAsignar').action = `/admin/grupos/asignar/${grupoId}`;
+  document.getElementById('inputTema').value = tema;
+  document.getElementById('inputObservacion').value = observacion;
+  document.getElementById('inputFecha').value = fecha;
+  const archivoDiv = document.getElementById('archivoActualDiv');
+  if (archivo) {
+    archivoDiv.style.display = 'block';
+    document.getElementById('archivoActualNombre').textContent = archivo;
+    document.getElementById('archivoActualLink').href = `/static/uploads/${archivo}`;
+  } else {
+    archivoDiv.style.display = 'none';
+  }
+  new bootstrap.Modal(document.getElementById('modalAsignar')).show();
+}
+
+function confirmarEliminarTema(id) {
+  if (confirm('¿Eliminar el tema asignado a este grupo?')) {
+    document.getElementById('form-eliminar-tema-' + id).submit();
+  }
+}
+
+document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(btn => {
+  btn.addEventListener('show.bs.dropdown', function() {
+    const menu = this.nextElementSibling;
+    const rect = this.getBoundingClientRect();
+    document.body.appendChild(menu);
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = (rect.right - menu.offsetWidth) + 'px';
+    menu.style.zIndex = '9999';
+    menu.style.display = 'block';
+  });
+});
+</script>
+{% endblock %}
