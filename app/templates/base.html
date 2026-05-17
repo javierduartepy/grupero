@@ -182,6 +182,22 @@ body.dark-mode #sidebar { background: linear-gradient(180deg, #0d1b2e, #1a3a6b);
     .badge.bg-primary { color: white !important; }
 
     footer { font-size: 0.82rem; }
+    @media (max-width: 768px) {
+  #sidebar {
+    width: 60px !important;
+  }
+  #sidebar .brand-text,
+  #sidebar .link-text {
+    opacity: 0 !important;
+    width: 0 !important;
+  }
+  #main-content {
+    margin-left: 60px !important;
+  }
+  #toggleSidebar {
+    left: 70px !important;
+  }
+}
   </style>
 </head>
 <body>
