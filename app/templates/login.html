@@ -162,7 +162,9 @@ function playSound() {
 
 function cerrarModal() {
   playSound();
-  window.location.href = "{{ url_for('main.index') }}";
+  setTimeout(() => {
+    window.location.href = "{{ url_for('main.index') }}";
+  }, 1000);
 }
 
 function tw(el, text, delay=35, cb){
