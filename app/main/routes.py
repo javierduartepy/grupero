@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session, redirect, url_for
 from app.models.persona import Persona
 from app.models.grupo import Grupo
 
@@ -10,6 +10,7 @@ def index():
     total_personas = Persona.query.count()
     total_grupos = Grupo.query.count()
     return render_template('main/index.html', total_personas=total_personas, total_grupos=total_grupos)
+
 
 @main_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -29,6 +30,7 @@ def login():
             if not persona:
                 modal = 'no_registrado'
             else:
+                session['usuario'] = {'id': persona.id, 'nombre': persona.nombre, 'apellido': persona.apellido}
                 grupo = Grupo.query.filter(Grupo.personas.any(id=persona.id)).first()
                 if not grupo:
                     modal = 'sin_grupo'
@@ -46,3 +48,9 @@ def login():
     return render_template('login.html',
         modal=modal,
         persona_data=persona_data)
+
+
+@main_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main.login'))
