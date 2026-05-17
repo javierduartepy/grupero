@@ -77,6 +77,14 @@ def actualizar(persona_id):
 
 @persona_bp.route('/eliminar/<int:persona_id>', methods=['POST'])
 def eliminar(persona_id):
+    from app.models.grupo import Grupo
+    persona = services.obtener_por_id(persona_id)
+
+    en_grupo = Grupo.query.filter(Grupo.personas.any(id=persona_id)).first()
+
+    if en_grupo:
+        return render_template('persona/error_grupo.html', persona=persona)
+
     services.eliminar(persona_id)
     flash('Persona eliminada.', 'warning')
     return redirect(url_for('persona.index'))

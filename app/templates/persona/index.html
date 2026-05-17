@@ -64,9 +64,11 @@
                       <li><hr class="dropdown-divider"></li>
                       <li>
                         <button class="dropdown-item text-danger"
-                         onclick="confirmarEliminar({{ p.id }}, `{{ p.nombre }} {{ p.apellido }}`)">
-                          <i class="bi bi-trash me-2"></i>Eliminar
-                        </button>
+        data-id="{{ p.id }}"
+        data-nombre="{{ p.nombre }} {{ p.apellido }}"
+        onclick="confirmarEliminar(this.dataset.id, this.dataset.nombre)">
+  <i class="bi bi-trash me-2"></i>Eliminar
+</button>
                       </li>
                     </ul>
                   </div>
@@ -127,11 +129,11 @@
 <script>
   let formIdEliminar = null;
 
-  function confirmarEliminar(id, nombre) {
-    formIdEliminar = id;
-    document.getElementById('nombreEliminar').textContent = nombre;
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
-  }
+function confirmarEliminar(id, nombre) {
+  formIdEliminar = id;
+  document.getElementById('nombreEliminar').textContent = nombre;
+  new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+}
 
   document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
     if (formIdEliminar) {

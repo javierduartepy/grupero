@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo Grupo — GruPero{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-people me-2"></i>Formar Nuevo Grupo
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('grupo.crear') }}" id="form-grupo">
+
+          <div class="mb-3">
+            <label for="tamano" class="form-label fw-semibold">Tamaño del grupo</label>
+            <select class="form-select" name="tamano" id="tamano">
+              {% for n in range(2, personas|length + 1) %}
+              <option value="{{ n }}">{{ n }} personas</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Método de formación</label>
+            <div class="d-grid gap-2">
+              <input type="radio" class="btn-check" name="metodo" id="m_azar" value="azar" checked>
+              <label class="btn btn-outline-secondary text-start" for="m_azar">
+                <i class="bi bi-shuffle me-2"></i>Al Azar
+              </label>
+
+              <input type="radio" class="btn-check" name="metodo" id="m_compat" value="compatibilidad">
+              <label class="btn btn-outline-secondary text-start" for="m_compat">
+                <i class="bi bi-clock me-2"></i>Por Compatibilidad de Horario
+              </label>
+
+              <input type="radio" class="btn-check" name="metodo" id="m_manual" value="manual">
+              <label class="btn btn-outline-secondary text-start" for="m_manual">
+                <i class="bi bi-hand-index me-2"></i>Manual
+              </label>
+            </div>
+          </div>
+
+          <div id="panel-manual" class="mb-3" style="display:none;">
+            <label class="form-label fw-semibold">Seleccioná las personas</label>
+            <div class="d-flex flex-column gap-1">
+              {% for p in personas %}
+              <div class="form-check border rounded px-3 py-2">
+                <input class="form-check-input manual-check" type="checkbox"
+                       name="manual_ids" value="{{ p.id }}" id="pid_{{ p.id }}">
+                <label class="form-check-label w-100" for="pid_{{ p.id }}">
+                  <span class="fw-semibold">{{ p.nombre }} {{ p.apellido }}</span>
+                  <br>
+                  <small class="text-muted">{{ p.dias_lista()|join(', ') }} — {{ p.horarios_lista()|join(', ') }}</small>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-plus-circle me-2"></i>Formar Grupo
+            </button>
+            <a href="{{ url_for('grupo.index') }}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-2"></i>Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('input[name="metodo"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('panel-manual').style.display =
+        r.value === 'manual' && r.checked ? 'block' : 'none';
+    });
+  });
+
+  const tamanoSel = document.getElementById('tamano');
+  function limitarChecks() {
+    const max = parseInt(tamanoSel.value);
+    const checks = document.querySelectorAll('.manual-check');
+    checks.forEach(cb => {
+      cb.addEventListener('change', () => {
+        const sel = document.querySelectorAll('.manual-check:checked').length;
+        checks.forEach(c => {
+          if (!c.checked) c.disabled = sel >= max;
+        });
+      });
+    });
+  }
+  tamanoSel.addEventListener('change', limitarChecks);
+  limitarChecks();
+</script>
+{% endblock %}
