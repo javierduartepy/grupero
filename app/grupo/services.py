@@ -30,18 +30,39 @@ def _score_compatibilidad(combo):
     return score
 
 
+def obtener_ids_con_grupo():
+    grupos = Grupo.query.all()
+    ids = set()
+    for g in grupos:
+        for p in g.personas:
+            ids.add(p.id)
+    return ids
+
+
+def personas_con_grupo(ids):
+    resultado = []
+    for persona_id in ids:
+        en_grupo = Grupo.query.filter(Grupo.personas.any(id=persona_id)).first()
+        if en_grupo:
+            persona = Persona.query.get(persona_id)
+            resultado.append({'persona': persona, 'grupo_id': en_grupo.id})
+    return resultado
+
+
 def formar_al_azar(tamano):
-    personas = Persona.query.all()
+    ids_ocupados = obtener_ids_con_grupo()
+    personas = [p for p in Persona.query.all() if p.id not in ids_ocupados]
     if len(personas) < tamano:
-        raise ValueError(f'Se necesitan al menos {tamano} personas registradas.')
+        raise ValueError(f'No hay suficientes personas sin grupo. Solo hay {len(personas)} disponibles.')
     seleccionadas = random.sample(personas, tamano)
     return _guardar_grupo(seleccionadas)
 
 
 def formar_por_compatibilidad(tamano):
-    personas = Persona.query.all()
+    ids_ocupados = obtener_ids_con_grupo()
+    personas = [p for p in Persona.query.all() if p.id not in ids_ocupados]
     if len(personas) < tamano:
-        raise ValueError(f'Se necesitan al menos {tamano} personas registradas.')
+        raise ValueError(f'No hay suficientes personas sin grupo. Solo hay {len(personas)} disponibles.')
     mejor_score = -1
     mejor_combo = None
     for combo in combinations(personas, tamano):
@@ -53,6 +74,10 @@ def formar_por_compatibilidad(tamano):
 
 
 def formar_manual(ids):
+    conflictos = personas_con_grupo(ids)
+    if conflictos:
+        nombres = ', '.join(f"{c['persona'].nombre} {c['persona'].apellido}" for c in conflictos)
+        raise ValueError(f'Las siguientes personas ya tienen grupo: {nombres}')
     personas = Persona.query.filter(Persona.id.in_(ids)).all()
     if len(personas) != len(ids):
         raise ValueError('Una o más personas seleccionadas no existen.')

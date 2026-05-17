@@ -25,6 +25,7 @@
                 <th>Apellido</th>
                 <th>Días</th>
                 <th>Horarios</th>
+                <th>Grupo</th>
                 <th class="text-end pe-3">Acciones</th>
               </tr>
             </thead>
@@ -43,6 +44,17 @@
                   {% for h in p.horarios_lista() %}
                   <span class="badge bg-primary bg-opacity-10 text-primary">{{ h }}</span>
                   {% endfor %}
+                </td>
+                <td>
+                  {% if p.id in ids_con_grupo %}
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-circle me-1"></i>Sí
+                  </span>
+                  {% else %}
+                  <span class="badge bg-secondary bg-opacity-25 text-secondary">
+                    <i class="bi bi-dash-circle me-1"></i>No
+                  </span>
+                {% endif %}
                 </td>
                 <td class="text-end pe-3">
                   <div class="dropdown">

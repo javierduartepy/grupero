@@ -13,7 +13,9 @@ def index():
 
 @grupo_bp.route('/formar')
 def formar():
-    personas = Persona.query.all()
+    from app.grupo.services import obtener_ids_con_grupo
+    ids_ocupados = obtener_ids_con_grupo()
+    personas = [p for p in Persona.query.all() if p.id not in ids_ocupados]
     return render_template('grupo/crear.html', personas=personas)
 
 
@@ -32,6 +34,12 @@ def crear():
             if len(ids) != tamano:
                 flash(f'Seleccioná exactamente {tamano} personas.', 'danger')
                 return redirect(url_for('grupo.formar'))
+            conflictos = services.personas_con_grupo(ids)
+            if conflictos:
+                personas = Persona.query.all()
+                return render_template('grupo/crear.html',
+                    personas=personas,
+                    conflictos=conflictos)
             grupo = services.formar_manual(ids)
 
         flash('Grupo formado correctamente.', 'success')
@@ -39,7 +47,7 @@ def crear():
 
     except ValueError as e:
         flash(str(e), 'danger')
-        return redirect(url_for('grupo.crear'))
+        return redirect(url_for('grupo.formar'))
 
 
 @grupo_bp.route('/visualizar/<int:grupo_id>')

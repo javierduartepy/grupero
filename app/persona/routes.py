@@ -7,8 +7,12 @@ persona_bp = Blueprint('persona', __name__, template_folder='../templates/person
 
 @persona_bp.route('/')
 def index():
+    from app.grupo.services import obtener_ids_con_grupo
     personas = services.obtener_todas()
-    return render_template('persona/index.html', personas=personas)
+    ids_con_grupo = obtener_ids_con_grupo()
+    return render_template('persona/index.html', 
+        personas=personas, 
+        ids_con_grupo=ids_con_grupo)
 
 
 @persona_bp.route('/nueva')

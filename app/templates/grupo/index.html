@@ -58,7 +58,6 @@
                       </li>
                     </ul>
                   </div>
-
                   <form id="form-eliminar-{{ g.id }}" method="POST"
                         action="{{ url_for('grupo.eliminar', grupo_id=g.id) }}"
                         style="display:none;">
@@ -111,17 +110,30 @@
 
 {% block scripts %}
 <script>
-  let grupoIdEliminar = null;
+let grupoIdEliminar = null;
 
 function confirmarEliminar(id) {
   grupoIdEliminar = id;
   new bootstrap.Modal(document.getElementById('modalEliminar')).show();
 }
 
-  document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
-    if (grupoIdEliminar) {
-      document.getElementById('form-eliminar-' + grupoIdEliminar).submit();
-    }
+document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
+  if (grupoIdEliminar) {
+    document.getElementById('form-eliminar-' + grupoIdEliminar).submit();
+  }
+});
+
+document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(btn => {
+  btn.addEventListener('show.bs.dropdown', function() {
+    const menu = this.nextElementSibling;
+    const rect = this.getBoundingClientRect();
+    document.body.appendChild(menu);
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = (rect.right - menu.offsetWidth) + 'px';
+    menu.style.zIndex = '9999';
+    menu.style.display = 'block';
   });
+});
 </script>
 {% endblock %}
