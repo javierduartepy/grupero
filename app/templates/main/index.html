@@ -60,6 +60,12 @@ body.dark-mode #num-grupos {
     justify-content: center;
     min-height: calc(100vh - 120px);
   }
+  body.dark-mode #titulo,
+body.dark-mode .nodes-content span,
+body.dark-mode #card-personas p,
+body.dark-mode #card-grupos p {
+  color: #ffffff !important;
+}
 </style>
 
 {% endblock %}
@@ -72,7 +78,7 @@ body.dark-mode #num-grupos {
   const N = 180, DIST = 200, MDIST = 150;
 
   function isDark() { return document.body.classList.contains('dark-mode'); }
-  function col() { return isDark() ? [255,255,255] : [30,80,180]; }
+  function col() { return isDark() ? [255, 255, 255] : [100, 100, 100]; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
