@@ -15,7 +15,6 @@ def create_app(config_name=None):
 
     db.init_app(app)
 
-    # Registrar Blueprints
     from app.main.routes import main_bp
     from app.persona.routes import persona_bp
     from app.grupo.routes import grupo_bp
@@ -36,7 +35,6 @@ def create_app(config_name=None):
         except:
             return fecha
 
-    # Crear tablas si no existen
     with app.app_context():
         db.create_all()
 

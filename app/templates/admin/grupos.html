@@ -2,6 +2,7 @@
 {% block title %}Grupos — Admin{% endblock %}
 
 {% block content %}
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <style>
   .card { overflow: visible !important; }
   .card-body { overflow: visible !important; }
@@ -11,10 +12,10 @@
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-3">
-        <a href="{{ url_for('admin.grupos_pdf') }}" class="btn btn-primary btn-sm">
-          <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
-        </a>
-        <span><i class="bi bi-people me-2"></i>Grupos Formados</span>
+          <a href="{{ url_for('admin.grupos_pdf') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+          </a>
+          <span><i class="bi bi-people me-2"></i>Grupos Formados</span>
         </div>
         <span class="badge bg-primary rounded-pill">{{ grupos|length }}</span>
       </div>
@@ -192,7 +193,8 @@
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Observación</label>
-            <textarea name="observacion" id="inputObservacion" class="form-control" rows="3"></textarea>
+            <div id="editorObservacion" style="height:150px;border-radius:8px;"></div>
+            <input type="hidden" name="observacion" id="inputObservacion">
           </div>
         </div>
         <div class="modal-footer border-0">
@@ -206,7 +208,23 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
+const quill = new Quill('#editorObservacion', {
+  theme: 'snow',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['clean']
+    ]
+  }
+});
+
+document.getElementById('formAsignar').addEventListener('submit', function() {
+  document.getElementById('inputObservacion').value = quill.root.innerHTML;
+});
+
 let grupoIdEliminar = null;
 
 function confirmarEliminar(id) {
@@ -222,13 +240,13 @@ document.getElementById('btnConfirmarEliminar').addEventListener('click', () => 
 
 function abrirVisualizar(tema, observacion, archivo, fecha) {
   document.getElementById('verTema').textContent = tema || '—';
-  document.getElementById('verObservacion').textContent = observacion || '—';
+  document.getElementById('verObservacion').innerHTML = observacion || '—';
   if (fecha) {
     const parts = fecha.split('-');
-      document.getElementById('verFecha').textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
-    } else {
-      document.getElementById('verFecha').textContent = '—';
-    }
+    document.getElementById('verFecha').textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
+  } else {
+    document.getElementById('verFecha').textContent = '—';
+  }
   const verArchivo = document.getElementById('verArchivo');
   if (archivo) {
     verArchivo.innerHTML = `<a href="/static/uploads/${archivo}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-arrow-down me-1"></i>${archivo}</a>`;
@@ -241,7 +259,7 @@ function abrirVisualizar(tema, observacion, archivo, fecha) {
 function abrirAsignar(grupoId, tema, observacion, archivo, fecha) {
   document.getElementById('formAsignar').action = `/admin/grupos/asignar/${grupoId}`;
   document.getElementById('inputTema').value = tema;
-  document.getElementById('inputObservacion').value = observacion;
+  quill.root.innerHTML = observacion || '';
   document.getElementById('inputFecha').value = fecha;
   const archivoDiv = document.getElementById('archivoActualDiv');
   if (archivo) {
