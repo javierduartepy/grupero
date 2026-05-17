@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}GruPero — Ingresar{% endblock %}
+
+{% block content %}
+
+<canvas id="nodesCanvas"></canvas>
+
+<div class="nodes-content">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;opacity:0.35">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:3px;color:currentColor">GruPero</span>
+    </div>
+
+    <h1 id="titulo" style="font-family:'Share Tech Mono',monospace;font-size:30px;font-weight:400;margin:0 0 44px;color:var(--bs-body-color);letter-spacing:2px;line-height:1.3;white-space:pre-line"></h1>
+
+    <form method="POST" action="{{ url_for('main.login') }}" style="width:100%;max-width:320px;">
+      <div style="margin-bottom:16px;">
+        <input type="text" name="nombre" placeholder="Nombre"
+          class="form-control"
+          style="font-family:'Share Tech Mono',monospace;font-size:16px;text-align:center;background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:14px;"
+          required>
+      </div>
+      <div style="margin-bottom:24px;">
+        <input type="text" name="apellido" placeholder="Apellido"
+          class="form-control"
+          style="font-family:'Share Tech Mono',monospace;font-size:16px;text-align:center;background:rgba(128,128,128,0.08);border:0.5px solid rgba(128,128,128,0.2);border-radius:12px;padding:14px;"
+          required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100"
+        style="font-family:'Share Tech Mono',monospace;font-size:16px;padding:14px;border-radius:12px;">
+        Ingresar
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if modal %}
+<div id="modalLogin" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--bs-body-bg);border-radius:16px;padding:28px;max-width:360px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,0.15);border:0.5px solid rgba(128,128,128,0.2);">
+
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:0.5px solid rgba(128,128,128,0.2);">
+      {% if modal == 'no_registrado' %}
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2e6ab5" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/>
+      </svg>
+      {% else %}
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2e6ab5" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        {% if modal == 'con_grupo' %}<polyline points="9 11 11 13 15 9"/>{% endif %}
+      </svg>
+      {% endif %}
+      <span style="font-family:'Share Tech Mono',monospace;font-size:20px;letter-spacing:1px;color:var(--bs-body-color)">Bienvenido!</span>
+    </div>
+
+    <p id="modal-line1" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--bs-body-color);margin:0 0 8px;min-height:20px;"></p>
+    <p id="modal-line2" style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--bs-secondary-color);margin:0 0 24px;line-height:1.7;min-height:20px;"></p>
+
+    <div style="text-align:right;">
+      <button onclick="cerrarModal()" style="font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;padding:10px 28px;border-radius:8px;border:none;background:linear-gradient(135deg,#1a2e50,#2e6ab5);color:#fff;cursor:pointer;">
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  #nodesCanvas { position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none; }
+  .nodes-content { position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 120px); }
+  body.dark-mode input.form-control { color:#ffffff !important; }
+  body.dark-mode input.form-control::placeholder { color:rgba(255,255,255,0.4) !important; }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const canvas = document.getElementById('nodesCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, nodes = [], mouse = { x: -9999, y: -9999 };
+const N = 190, DIST = 190, MDIST = 150;
+
+function isDark() { return document.body.classList.contains('dark-mode'); }
+function col() { return isDark() ? [255,255,255] : [100,100,100]; }
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function mk() { return { ox: Math.random()*W, oy: Math.random()*H, x: 0, y: 0 }; }
+
+function drawCylinder(x,y,w,h,a){ const [r,g,b]=col(); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const ry=h*0.15; ctx.beginPath(); ctx.ellipse(x,y-h/2+ry,w/2,ry,0,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+ry); ctx.lineTo(x-w/2,y+h/2-ry); ctx.ellipse(x,y+h/2-ry,w/2,ry,0,0,Math.PI); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x+w/2,y-h/2+ry); ctx.lineTo(x+w/2,y+h/2-ry); ctx.stroke(); ctx.restore(); }
+function drawMemBlock(x,y,w,h,a){ const [r,g,b]=col(); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const rows=6,rh=h/rows; ctx.strokeRect(x-w/2,y-h/2,w,h); for(let i=1;i<rows;i++){ ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+i*rh); ctx.lineTo(x+w/2,y-h/2+i*rh); ctx.stroke(); } [0,2,4].forEach(i=>{ ctx.fillStyle=`rgba(${r},${g},${b},0.06)`; ctx.fillRect(x-w/2+1,y-h/2+i*rh+1,w-2,rh-2); }); ctx.restore(); }
+function drawCPU(x,y,s,a){ const [r,g,b]=col(); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; ctx.strokeRect(x-s/2,y-s/2,s,s); ctx.strokeRect(x-s*0.28,y-s*0.28,s*0.56,s*0.56); ctx.beginPath(); ctx.moveTo(x-s*0.28,y); ctx.lineTo(x+s*0.28,y); ctx.moveTo(x,y-s*0.28); ctx.lineTo(x,y+s*0.28); ctx.stroke(); for(let i=0;i<3;i++){ const off=(i-1)*s*0.22; ctx.beginPath(); ctx.moveTo(x+off,y-s/2); ctx.lineTo(x+off,y-s/2-12); ctx.moveTo(x+off,y+s/2); ctx.lineTo(x+off,y+s/2+12); ctx.moveTo(x-s/2,y+off); ctx.lineTo(x-s/2-12,y+off); ctx.moveTo(x+s/2,y+off); ctx.lineTo(x+s/2+12,y+off); ctx.stroke(); } ctx.restore(); }
+function drawPageTable(x,y,w,h,a){ const [r,g,b]=col(); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`; ctx.lineWidth=1; const rows=5,rh=h/rows; ctx.strokeRect(x-w/2,y-h/2,w,h); ctx.beginPath(); ctx.moveTo(x-w/2+w*0.45,y-h/2); ctx.lineTo(x-w/2+w*0.45,y+h/2); ctx.stroke(); for(let i=1;i<rows;i++){ ctx.beginPath(); ctx.moveTo(x-w/2,y-h/2+i*rh); ctx.lineTo(x+w/2,y-h/2+i*rh); ctx.stroke(); } ctx.fillStyle=`rgba(${r},${g},${b},0.1)`; ctx.fillRect(x-w/2+1,y-h/2+2*rh+1,w-2,rh-2); ctx.fillStyle=`rgba(${r},${g},${b},0.45)`; ctx.font='10px monospace'; ctx.fillText('P',x-w/2+8,y-h/2+14); ctx.fillText('D',x-w/2+w*0.55,y-h/2+14); ctx.restore(); }
+function drawArrow(x1,y1,x2,y2,a){ const [r,g,b]=col(); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=`rgba(${r},${g},${b},0.35)`; ctx.lineWidth=0.8; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); const ang=Math.atan2(y2-y1,x2-x1),as=8; [0,Math.PI].forEach(base=>{ const aa=base===0?ang:ang+Math.PI,px=base===0?x2:x1,py=base===0?y2:y1; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-as*Math.cos(aa-0.4),py-as*Math.sin(aa-0.4)); ctx.moveTo(px,py); ctx.lineTo(px-as*Math.cos(aa+0.4),py-as*Math.sin(aa+0.4)); ctx.stroke(); }); ctx.restore(); }
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  const [r,g,b] = col();
+  for(let n of nodes){ const dx=mouse.x-n.ox,dy=mouse.y-n.oy,d=Math.hypot(dx,dy); if(d<MDIST&&d>0){const p=(MDIST-d)/MDIST*0.3;n.x=n.ox+dx*p;n.y=n.oy+dy*p;}else{n.x+=(n.ox-n.x)*0.08;n.y+=(n.oy-n.y)*0.08;} }
+  for(let i=0;i<nodes.length;i++){ for(let j=i+1;j<nodes.length;j++){ const d=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y); if(d<DIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-d/DIST)*.3})`;ctx.lineWidth=.7;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();} } const dm=Math.hypot(nodes[i].x-mouse.x,nodes[i].y-mouse.y); if(dm<MDIST){ctx.beginPath();ctx.strokeStyle=`rgba(${r},${g},${b},${(1-dm/MDIST)*.7})`;ctx.lineWidth=1;ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();} }
+  for(let n of nodes){ctx.beginPath();ctx.arc(n.x,n.y,2.5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.75)`;ctx.fill();}
+  if(mouse.x>0){ctx.beginPath();ctx.arc(mouse.x,mouse.y,5,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},0.9)`;ctx.fill();}
+  drawCPU(W*0.10,H*0.28,60,0.55);
+  drawMemBlock(W*0.36,H*0.22,55,80,0.5);
+  drawCylinder(W*0.75,H*0.25,50,70,0.5);
+  drawPageTable(W*0.65,H*0.75,70,80,0.5);
+  drawMemBlock(W*0.88,H*0.65,45,70,0.45);
+  drawMemBlock(W*0.12,H*0.72,50,75,0.45);
+  drawArrow(W*0.10+32,H*0.28,W*0.36-28,H*0.22,0.35);
+  drawArrow(W*0.36+28,H*0.22,W*0.75-28,H*0.25,0.35);
+  drawArrow(W*0.65+10,H*0.75,W*0.88-23,H*0.65,0.3);
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', () => { resize(); nodes = Array.from({length:N}, mk); });
+document.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+document.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+resize();
+nodes = Array.from({length:N}, mk);
+draw();
+
+setTimeout(()=>typewriter(document.getElementById('titulo'),'Arquitectura y\nSistema Operativo',45),200);
+function typewriter(el,text,delay=80){ el.textContent='';let i=0; const t=setInterval(()=>{el.textContent+=text[i++];if(i>=text.length)clearInterval(t);},delay); }
+
+// Sonido y typewriter del modal
+{% if modal %}
+const actx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound() {
+  const melody = [
+    { freq: 392, time: 0,    dur: 0.6, vol: 0.12 },
+    { freq: 523, time: 0.15, dur: 0.6, vol: 0.10 },
+    { freq: 659, time: 0.30, dur: 0.7, vol: 0.10 },
+    { freq: 784, time: 0.45, dur: 0.9, vol: 0.09 },
+    { freq: 1047,time: 0.65, dur: 1.1, vol: 0.07 },
+  ];
+  melody.forEach(({ freq, time, dur, vol }) => {
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    const now = actx.currentTime;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + time);
+    gain.gain.setValueAtTime(0, now + time);
+    gain.gain.linearRampToValueAtTime(vol, now + time + 0.05);
+    gain.gain.setValueAtTime(vol, now + time + dur * 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + time + dur);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start(now + time);
+    osc.stop(now + time + dur + 0.1);
+  });
+}
+
+function cerrarModal() {
+  playSound();
+  window.location.href = "{{ url_for('main.index') }}";
+}
+
+function tw(el, text, delay=35, cb){
+  el.textContent=''; let i=0;
+  const t=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i>=text.length){ clearInterval(t); if(cb) cb(); }
+  }, delay);
+}
+
+{% if modal == 'no_registrado' %}
+tw(document.getElementById('modal-line1'), 'Usted no está registrado.', 40, ()=>{
+  tw(document.getElementById('modal-line2'), 'Debe agregarse en la lista de personas y luego formar un grupo.', 28);
+});
+{% elif modal == 'sin_grupo' %}
+tw(document.getElementById('modal-line1'), '{{ persona_data.nombre }} {{ persona_data.apellido }},', 40, ()=>{
+  tw(document.getElementById('modal-line2'), 'Debe formar un grupo.', 28);
+});
+{% elif modal == 'con_grupo' %}
+tw(document.getElementById('modal-line1'), '{{ persona_data.nombre }} {{ persona_data.apellido }},', 40, ()=>{
+  tw(document.getElementById('modal-line2'), 'Ya hacés grupo con {% for c in persona_data.companieros %}{{ c.nombre }} {{ c.apellido }}{% if not loop.last %} y {% endif %}{% endfor %}.', 28);
+});
+{% endif %}
+{% endif %}
+</script>
+{% endblock %}
