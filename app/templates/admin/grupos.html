@@ -57,9 +57,8 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                       <li>
-                        <button class="dropdown-item"
-                          onclick="abrirVisualizar('{{ g.tema or '' }}', '{{ g.observacion or '' }}', '{{ g.archivo or '' }}', '{{ g.fecha_exposicion or '' }}')">
-                          <i class="bi bi-eye me-2"></i>Visualizar tema
+                        <button class="dropdown-item" onclick="abrirVisualizar({{ g.tema | tojson }}, {{ g.observacion | tojson }}, {{ g.archivo | tojson }}, {{ g.fecha_exposicion | tojson }})">
+                            <i class="bi bi-eye me-2"></i>Visualizar tema
                         </button>
                       </li>
                       <li>

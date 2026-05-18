@@ -58,7 +58,7 @@
         <div class="mb-3">
           <label class="form-label fw-semibold text-muted">Observación</label>
           <div class="border rounded px-3 py-2">
-            <span>{{ grupo.observacion }}</span>
+            <span>{{ grupo.observacion | safe}}</span>
           </div>
         </div>
         {% endif %}
